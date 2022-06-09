@@ -130,7 +130,7 @@ jobs:
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
             --output text >> .circleci/ansible/inventory.txt
       - persist_to_workspace:
-          root: ~/project_<< pipeline.number >>
+          root: ~/
           paths:
             - project/.circleci/ansible/inventory.txt
             - project/.circleci/ansible
@@ -144,7 +144,7 @@ jobs:
       - add_ssh_keys:
           fingerprints: ["ea:43:42:b3:40:5f:88:9b:e5:a5:53:6a:9b:d6:2b:64"]
       - attach_workspace:
-          at: ~/project_<< pipeline.number >>
+          at: ~/
       - run:
           name: Install dependencies
           command: apk add --update ansible
@@ -152,25 +152,25 @@ jobs:
           name: Configure server
           command: |
             cd ./circleci/ansible && \
-            ls -l && \ 
+            ls -l
             # sudo ansible-playbook -i inventory main-remote.yml
       - destroy-environment  
 
 workflows:
   deploy-project:
     jobs:
-      - build-frontend
-      - build-backend
-      - test-frontend:
-          requires: [build-frontend]
-      - test-backend:
-          requires: [build-backend]
-      - scan-backend:
-          requires: [build-backend]
-      - scan-frontend:
-          requires: [build-frontend]
+      # - build-frontend
+      # - build-backend
+      # - test-frontend:
+      #     requires: [build-frontend]
+      # - test-backend:
+      #     requires: [build-backend]
+      # - scan-backend:
+      #     requires: [build-backend]
+      # - scan-frontend:
+      #     requires: [build-frontend]
       - deploy-infrastructure:
-          requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+          # requires: [test-frontend, test-backend, scan-frontend, scan-backend]
           filters:
             branches:
               only: [deploy-infrastructure]          
