@@ -130,51 +130,56 @@ jobs:
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
             --output text >> .circleci/ansible/inventory.txt
       - persist_to_workspace:
-          root: ~/
+          root: ~/project_<< pipeline.number >>
           paths:
             - project/.circleci/ansible/inventory.txt
+            - project/.circleci/ansible
       - destroy-environment 
       
-  # configure-infrastructure:
-  #   docker:
-  #     # Docker image here that supports Ansible
-  #   steps:
-  #     # Checkout code from git
-  #     # Add ssh keys with fingerprint
-  #     # attach workspace
-  #     - run:
-  #         name: Install dependencies
-  #         command: |
-  #           # Your code here
-  #           exit 1
-  #     - run:
-  #         name: Configure server
-  #         command: |
-  #           # Your code here
-  #           exit 1
-  #     # Here's where you will add some code to rollback on failure  
+  configure-infrastructure:
+    docker:
+      - image: python:3.7-alpine3.11
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints: ["ea:43:42:b3:40:5f:88:9b:e5:a5:53:6a:9b:d6:2b:64"]
+      - attach_workspace:
+          at: ~/project_<< pipeline.number >>
+      - run:
+          name: Install dependencies
+          command: apk add --update ansible
+      - run:
+          name: Configure server
+          command: |
+            cd ./circleci/ansible && \
+            ls -l && \ 
+            # sudo ansible-playbook -i inventory main-remote.yml
+      - destroy-environment  
 
 workflows:
   deploy-project:
     jobs:
-      # - build-frontend
-      # - build-backend
-      # - test-frontend:
-      #     requires: [build-frontend]
-      # - test-backend:
-      #     requires: [build-backend]
-      # - scan-backend:
-      #     requires: [build-backend]
-      # - scan-frontend:
-      #     requires: [build-frontend]
+      - build-frontend
+      - build-backend
+      - test-frontend:
+          requires: [build-frontend]
+      - test-backend:
+          requires: [build-backend]
+      - scan-backend:
+          requires: [build-backend]
+      - scan-frontend:
+          requires: [build-frontend]
       - deploy-infrastructure:
-          # requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+          requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+          filters:
+            branches:
+              only: [deploy-infrastructure]          
+      - configure-infrastructure:
+          requires: [deploy-infrastructure]
           filters:
             branches:
               only: [deploy-infrastructure]
-          
-      # - configure-infrastructure:
-      #     requires: [deploy-infrastructure]
+
       # - run-migrations:
       #     requires: [configure-infrastructure]
       # - deploy-frontend:
