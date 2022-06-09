@@ -99,7 +99,7 @@ jobs:
             cd ./backend && \
             npm install && npm audit fix
   
-   deploy-infrastructure:
+  deploy-infrastructure:
     <<: *aws_docker_image
     steps:
       - checkout
