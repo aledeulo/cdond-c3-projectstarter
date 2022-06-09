@@ -74,7 +74,7 @@ jobs:
           name: Run audit for frontend
           command: |
             cd ./frontend && \
-            npm audit
+            npm install && npm audit
 
   scan-backend:
     <<: *node_docker_image
@@ -84,7 +84,7 @@ jobs:
           name: Run audit for backend
           command: |
             cd ./backend && \
-            npm audit
+            npm install && npm audit
 
 workflows:
   default:
