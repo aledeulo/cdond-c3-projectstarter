@@ -8,6 +8,19 @@ aws_docker_image: &aws_docker_image
 node_docker_image: &node_docker_image
   docker:
     - image: circleci/node:13.8.0
+
+commands:
+  destroy-environment:
+    description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
+    steps:
+      - run:
+          name: Destroy environments
+          when: on_fail
+          command: |
+            aws cloudformation delete-stack --stack-name front-end-stack-${CIRCLE_WORKFLOW_ID:0:5} && \
+            echo "CloudFormation cleaning has being triggered for front-end-stack-${CIRCLE_WORKFLOW_ID:0:5}!" && \
+            aws cloudformation delete-stack --stack-name back-end-stack-${CIRCLE_WORKFLOW_ID:0:5} && \
+            echo "CloudFormation cleaning has being triggered for back-end-stack-${CIRCLE_WORKFLOW_ID:0:5}!"
             
 jobs:
   build-frontend:
@@ -85,9 +98,41 @@ jobs:
           command: |
             cd ./backend && \
             npm install && npm audit fix
+  
+   deploy-infrastructure:
+    <<: *aws_docker_image
+    steps:
+      - checkout
+      - run:
+          name: Ensure back-end infrastructure exists
+          command: |
+            aws cloudformation deploy \
+              --template-file .circleci/files/backend.yml \
+              --tags project=your-tag \
+              --stack-name "back-end-stack-${CIRCLE_WORKFLOW_ID}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID}" 
+      - run:
+          name: Ensure front-end infrastructure exist
+          command: |
+            aws cloudformation deploy \
+              --template-file .circleci/files/frontend.yml \
+              --tags project=your-tag \
+              --stack-name "front-end-stack-${CIRCLE_WORKFLOW_ID}s" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID}"  
+      - run:
+          name: Add back-end ip to ansible inventory
+          command: |
+            aws ec2 describe-instances \
+            --query 'Reservations[*].Instances[*].PublicIpAddress' \
+            --output text >> .circleci/ansible/inventory.txt
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - .circleci/ansible/inventory.txt
+      - destroy-environment 
 
 workflows:
-  build-test-audit:
+  deploy-project:
     jobs:
       - build-frontend
       - build-backend
@@ -99,11 +144,12 @@ workflows:
           requires: [build-backend]
       - scan-frontend:
           requires: [build-frontend]
-      # - deploy-infrastructure:
-      #     requires: [test-frontend, test-backend, scan-frontend, scan-backend]
-      #     filters:
-      #       branches:
-      #         only: [test-feature-branch]
+      - deploy-infrastructure:
+          requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+          filters:
+            branches:
+              only: [deploy-infrastructure]
+          
       # - configure-infrastructure:
       #     requires: [deploy-infrastructure]
       # - run-migrations:
