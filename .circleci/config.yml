@@ -151,7 +151,7 @@ jobs:
       - run:
           name: Configure server
           command: |
-            cd ./circleci/ansible && \
+            cd project/.circleci/ansible && \
             ls -l
             # sudo ansible-playbook -i inventory main-remote.yml
       - destroy-environment  
