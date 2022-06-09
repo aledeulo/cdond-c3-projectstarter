@@ -19,7 +19,8 @@ jobs:
       - run:
           name: Build front-end
           command: |
-            npm install && npm run lint && npm run build
+            cd ./frontend && \
+            npm install && npm run build
       - save_cache:
           paths: 
             - ./node_modules
@@ -34,7 +35,8 @@ jobs:
       - run:
           name: Back-end build
           command: |
-             npm install && npm run lint && npm run build
+              cd ./backend && \
+              npm install && npm run build
       - save_cache:
           paths: 
             - ./node_modules
@@ -49,6 +51,7 @@ jobs:
       - run:
           name: Running tests for frontend
           command:  |
+            cd ./frontend && \
             npm i && npm run test
                 
   test-backend:
@@ -60,19 +63,28 @@ jobs:
       - run: 
           name: Running backend tests
           command:  |
+            cd ./backend && \
             npm i && npm run test
             
   scan-frontend:
     <<: *node_docker_image
     steps:
       - checkout
-      - run: npm audit
+      - run: 
+          name: Run audit for frontend
+          command: |
+            cd ./frontend && \
+            npm audit
 
   scan-backend:
     <<: *node_docker_image
     steps:
       - checkout
-      - run: npm audit
+      - run: 
+          name: Run audit for backend
+          command: |
+            cd ./backend && \
+            npm audit
 
 workflows:
   default:
