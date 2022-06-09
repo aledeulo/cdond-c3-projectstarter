@@ -117,8 +117,12 @@ jobs:
             aws cloudformation deploy \
               --template-file .circleci/files/frontend.yml \
               --tags project=your-tag \
-              --stack-name "front-end-stack-${CIRCLE_WORKFLOW_ID}s" \
+              --stack-name "front-end-stack-${CIRCLE_WORKFLOW_ID}" \
               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID}"  
+      - run:  
+          name: Install necessary tools for workspace
+          command: |
+            yum install -y tar gzip
       - run:
           name: Add back-end ip to ansible inventory
           command: |
