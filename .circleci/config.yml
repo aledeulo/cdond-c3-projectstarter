@@ -284,7 +284,7 @@ workflows:
       #         only: [deploy-infrastructure]
       #     context: Slack notifications
 
-      - run-migrations:
+      - run-migrations
       #     requires: [configure-infrastructure]
       # - deploy-frontend:
       #     requires: [run-migrations]
