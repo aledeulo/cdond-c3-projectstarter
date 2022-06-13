@@ -110,9 +110,9 @@ jobs:
           name: Create blue bucket
           command: |
               aws s3api create-bucket \
+              --acl public-read \
               --bucket udapeople-${CIRCLE_WORKFLOW_ID:0:7}  \ 
-              --region ${AWS_DEFAULT_REGION} \
-              --acl public-read
+              --region ${AWS_DEFAULT_REGION} 
       - run:
           name: Create the CloudFront distribution
           command: |
@@ -152,6 +152,23 @@ jobs:
           paths:
             - project/.circleci/ansible/inventory.txt
             - project/.circleci/ansible
+      - slack/notify:
+          custom: |
+            {
+              "blocks": [
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "plain_text",
+                      "text": "*Deploy infrastructure job alert. Please go to CircleCI to see details.*",
+                      "emoji": true
+                    }
+                  ]
+                }
+              ]
+            }
+          event: always
       - destroy-environment 
       
   configure-infrastructure:
