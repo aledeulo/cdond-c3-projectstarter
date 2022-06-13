@@ -211,7 +211,7 @@ workflows:
           filters:
             branches:
               only: [deploy-infrastructure]
-          context: slack      
+          context: Slack notifications      
       # - configure-infrastructure:
       #     requires: [deploy-infrastructure]
       #     filters:
