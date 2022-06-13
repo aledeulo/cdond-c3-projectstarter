@@ -2,6 +2,7 @@ version: 2.1
 
 orbs:
   slack: circleci/slack@4.1
+  aws-cli: amazon/aws-cli
 
 aws_docker_image: &aws_docker_image
   docker:
@@ -106,6 +107,10 @@ jobs:
     <<: *aws_docker_image
     steps:
       - checkout
+      - run:  
+            name: Install tar and gzip for workspace
+            command: |
+              yum install -y tar gzip
       - run:
           name: Create blue bucket
           command: |
@@ -118,7 +123,7 @@ jobs:
             aws cloudformation deploy \
             --template-file .circleci/files/cloudfront.yml \
             --stack-name InitialStack \
-            --parameter-overrides WorkflowID=udapeople-${CIRCLE_WORKFLOW_ID:0:7}
+            --parameter-overrides WorkflowID=${CIRCLE_WORKFLOW_ID:0:7}
       - run:
           name: Ensure back-end infrastructure exists
           command: |
@@ -134,11 +139,7 @@ jobs:
               --template-file .circleci/files/frontend.yml \
                --tags project=udapeople \
               --stack-name "udapeople-frontend-stack-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  
-      - run:  
-          name: Install necessary tools for workspace
-          command: |
-            yum install -y tar gzip
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"       
       - run:
           name: Add back-end ip to ansible inventory
           command: |
@@ -151,23 +152,23 @@ jobs:
           paths:
             - project/.circleci/ansible/inventory.txt
             - project/.circleci/ansible
-      - slack/notify:
-          custom: |
-            {
-              "blocks": [
-                {
-                  "type": "section",
-                  "fields": [
-                    {
-                      "type": "plain_text",
-                      "text": "*Deploy infrastructure job alert. Please go to CircleCI to see details.*",
-                      "emoji": true
-                    }
-                  ]
-                }
-              ]
-            }
-          event: always
+      # - slack/notify:
+      #     custom: |
+      #       {
+      #         "blocks": [
+      #           {
+      #             "type": "section",
+      #             "fields": [
+      #               {
+      #                 "type": "plain_text",
+      #                 "text": "*Deploy infrastructure job alert. Please go to CircleCI to see details.*",
+      #                 "emoji": true
+      #               }
+      #             ]
+      #           }
+      #         ]
+      #       }
+      #     event: always
       - destroy-environment 
       
   configure-infrastructure:
@@ -180,32 +181,32 @@ jobs:
       - attach_workspace:
           at: ~/
       - run:
-          name: Install dependencies
+          name: Install ansible
           command: apk add --update ansible
       - run:
           name: Configure server
           command: |
             cd ~/project/.circleci/ansible && \
             ls -l && \
-            ansible-playbook -i inventory configure-server.yml && \
-            ansible-playbook -i inventory deploy-backend.yml
-      - slack/notify:
-          custom: |
-            {
-              "blocks": [
-                {
-                  "type": "section",
-                  "fields": [
-                    {
-                      "type": "plain_text",
-                      "text": "*Configure instances job has falied. Please go to CircleCI to see details.*",
-                      "emoji": true
-                    }
-                  ]
-                }
-              ]
-            }
-          event: always
+            ansible-playbook -i inventory configure-server.yml
+          no_output_timeout: 30m
+      # - slack/notify:
+      #     custom: |
+      #       {
+      #         "blocks": [
+      #           {
+      #             "type": "section",
+      #             "fields": [
+      #               {
+      #                 "type": "plain_text",
+      #                 "text": "*Configure instances job has falied. Please go to CircleCI to see details.*",
+      #                 "emoji": true
+      #               }
+      #             ]
+      #           }
+      #         ]
+      #       }
+      #     event: always
       - destroy-environment  
       
 
@@ -228,12 +229,12 @@ workflows:
             branches:
               only: [deploy-infrastructure]
           context: Slack notifications      
-      # - configure-infrastructure:
-      #     requires: [deploy-infrastructure]
-      #     filters:
-      #       branches:
-      #         only: [deploy-infrastructure]
-      #     context: slack-secrets
+      - configure-infrastructure:
+          requires: [deploy-infrastructure]
+          filters:
+            branches:
+              only: [deploy-infrastructure]
+          context: slack-secrets
 
       # - run-migrations:
       #     requires: [configure-infrastructure]

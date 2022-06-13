@@ -27,6 +27,7 @@
      - name: Install Python
         raw: sudo -y install python
         when: check_python.rc != 0
+    
 
   # Get the environment variables from CircleCI and add to the EC2 instance
   environment:
@@ -41,5 +42,4 @@
     - TYPEORM_MIGRATIONS_DIR: "{{ lookup('env', 'TYPEORM_MIGRATIONS_DIR')}}"
 
   roles:
-    - configure-prometheus-node-exporter
     - configure-server
