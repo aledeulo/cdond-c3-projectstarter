@@ -32,7 +32,9 @@ commands:
       - run:
           name: Install aws-cli
           command: |
-            sudo apt install -y aws-cli
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
+            unzip awscliv2.zip && \
+            ./aws/install
       - run:
           name: Destroy environments
           when: on_fail
@@ -208,7 +210,6 @@ jobs:
           name: Configure server
           command: |
             cd ~/project/.circleci/ansible && \
-            cat inventory.txt && \
             ansible-playbook -i inventory.txt configure-server.yml
           no_output_timeout: 30m
       # - slack/notify:
