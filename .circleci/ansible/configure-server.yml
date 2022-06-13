@@ -13,7 +13,7 @@
     - ansible_stdout_callback: yaml
 
   pre_tasks:
-    - pause: seconds=600
+    - pause: seconds=60
 
     - name: "update apt packages"
       become: true

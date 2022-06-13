@@ -207,10 +207,13 @@ jobs:
           name: Install ansible
           command: apk add --update ansible
       - run:
+          name: Install openssh
+          command: apk add openssh-client
+      - run:
           name: Configure server
           command: |
             cd ~/project/.circleci/ansible && \
-            ansible-playbook -i inventory.txt configure-server.yml
+            ansible-playbook -i inventory.txt -c ssh configure-server.yml
           no_output_timeout: 30m
       # - slack/notify:
       #     custom: |
