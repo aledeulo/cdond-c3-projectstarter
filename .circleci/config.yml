@@ -2,7 +2,7 @@ version: 2.1
 
 orbs:
   slack: circleci/slack@4.1
-  cloudformation: orbss/aws-cloudformation@0.1.4
+  aws-cli: circleci/aws-cli@3.1
 
 aws_docker_image: &aws_docker_image
   docker:
@@ -17,22 +17,26 @@ commands:
   destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.    
     steps:
-      - cloudformation/delete-stack:
-        stack-name: udapeople-frontend-stack-${CIRCLE_WORKFLOW_ID:0:7}
-      - cloudformation/delete-stack:
-          stack-name: udapeople-backend-stack-${CIRCLE_WORKFLOW_ID:0:7}
-      - cloudformation/delete-stack:
-          stack-name: udapeople-cloudfront-stack-${CIRCLE_WORKFLOW_ID:0:7}
-      # - run:
-      #     name: Destroy environments
-      #     when: on_fail
-      #     command: |
-      #       aws cloudformation delete-stack --stack-name udapeople-frontend-stack-${CIRCLE_WORKFLOW_ID:0:7} && \
-      #       echo "CloudFormation cleaning has being triggered for udapeople-frontend-stack-${CIRCLE_WORKFLOW_ID:0:7}!" && \
-      #       aws cloudformation delete-stack --stack-name udapeople-backend-stack-${CIRCLE_WORKFLOW_ID:0:7} && \
-      #       echo "CloudFormation cleaning has being triggered for udapeople-backend-stack-${CIRCLE_WORKFLOW_ID:0:7}!" && \
-      #       aws cloudformation delete-stack --stack-name udapeople-cloudfront-stack-${CIRCLE_WORKFLOW_ID:0:7} && \
-      #       echo "CloudFormation cleaning has being triggered for udapeople-cloudfront-stack-${CIRCLE_WORKFLOW_ID:0:7}!"
+      - aws-cli/setup:
+          profile-name: default
+      - aws-cli/role-arn-setup:
+          profile-name: new-profile
+          role-arn: 'arn:aws:iam::246528985509:role/CloudFormationAdmin'
+          source-profile: default
+      - run: >-
+          aws sts assume-role --role-arn
+          "arn:aws:iam::246528985509:role/CloudFormationAdmin" --role-session-name
+          AWSCLI-Session
+      - run:
+          name: Destroy environments
+          when: on_fail
+          command: |
+            aws cloudformation delete-stack --stack-name udapeople-frontend-stack-${CIRCLE_WORKFLOW_ID:0:7} && \
+            echo "CloudFormation cleaning has being triggered for udapeople-frontend-stack-${CIRCLE_WORKFLOW_ID:0:7}!" && \
+            aws cloudformation delete-stack --stack-name udapeople-backend-stack-${CIRCLE_WORKFLOW_ID:0:7} && \
+            echo "CloudFormation cleaning has being triggered for udapeople-backend-stack-${CIRCLE_WORKFLOW_ID:0:7}!" && \
+            aws cloudformation delete-stack --stack-name udapeople-cloudfront-stack-${CIRCLE_WORKFLOW_ID:0:7} && \
+            echo "CloudFormation cleaning has being triggered for udapeople-cloudfront-stack-${CIRCLE_WORKFLOW_ID:0:7}!"
             
 jobs:
   build-frontend:
