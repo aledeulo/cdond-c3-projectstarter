@@ -192,8 +192,8 @@ jobs:
       #         ]
       #       }
       #     event: always
-      - destroy-environment-from-aws-image 
-      
+      - destroy-environment-from-aws-image
+
   configure-infrastructure:
     docker:
       - image: python:3.7-alpine3.11
