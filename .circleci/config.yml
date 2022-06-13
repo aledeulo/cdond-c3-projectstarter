@@ -211,7 +211,7 @@ workflows:
           filters:
             branches:
               only: [deploy-infrastructure]
-          context: slack-secrets        
+          context: slack      
       # - configure-infrastructure:
       #     requires: [deploy-infrastructure]
       #     filters:
