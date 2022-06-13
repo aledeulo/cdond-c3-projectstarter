@@ -20,10 +20,6 @@
       apt:
         update_cache: yes
 
-    - name: Install prerequisites
-      apt: name=python-software-properties state=present
-      become: true
-
     - name: Add deadsnakes repo
       apt_repository: repo="ppa:deadsnakes/ppa"
       become: true
