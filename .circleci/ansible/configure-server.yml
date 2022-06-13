@@ -20,11 +20,6 @@
       apt:
         update_cache: yes
 
-    - name: Check if python is already latest
-      command: python3 --version
-      register: python_version_result
-      failed_when: "{{ python_version_result.stdout | replace('Python ', '') | version_compare(python_version, '>=') }}"
-
     - name: Install prerequisites
       apt: name=python-software-properties state=present
       become: true
@@ -34,8 +29,8 @@
       become: true
 
     - name: Install python
-      apt: name="python{{ python_version }}-dev" state=present
       become: true
+      raw: apt install -y python3
     
 
   # Get the environment variables from CircleCI and add to the EC2 instance
