@@ -128,15 +128,15 @@ jobs:
           command: |
               aws s3api create-bucket \
               --acl public-read \
-              --bucket udapeople-${CIRCLE_WORKFLOW_ID:0:7}
-      # - run:
-      #     name: Create the CloudFront distribution
-      #     command: |
-      #       aws cloudformation deploy \
-      #       --template-file .circleci/files/cloudfront.yml \
-      #       --stack-name "udapeople-cloudfront-stack-${CIRCLE_WORKFLOW_ID:0:7}" \
-      #       --parameter-overrides WorkflowID=${CIRCLE_WORKFLOW_ID:0:7}
-      #     no_output_timeout: 30m
+              --bucket udapeople-old-${CIRCLE_WORKFLOW_ID:0:7}
+      - run:
+          name: Create the CloudFront distribution
+          command: |
+            aws cloudformation deploy \
+            --template-file .circleci/files/cloudfront.yml \
+            --stack-name "udapeople-cloudfront-stack-${CIRCLE_WORKFLOW_ID:0:7}" \
+            --parameter-overrides WorkflowID=old-${CIRCLE_WORKFLOW_ID:0:7}
+          no_output_timeout: 30m
       - run:
           name: Ensure back-end infrastructure exists
           command: |
