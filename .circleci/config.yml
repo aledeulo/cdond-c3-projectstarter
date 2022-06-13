@@ -123,22 +123,22 @@ jobs:
             name: Install tar and gzip for workspace
             command: |
               yum install -y tar gzip
+      # - run:
+      #     name: Create blue bucket
+      #     command: |
+      #         aws s3api create-bucket \
+      #         --acl public-read \
+      #         --bucket udapeople-old-${CIRCLE_WORKFLOW_ID:0:7}
+      # - run:
+      #     name: Create the CloudFront distribution
+      #     command: |
+      #       aws cloudformation deploy \
+      #       --template-file .circleci/files/cloudfront.yml \
+      #       --stack-name "udapeople-cloudfront-stack-${CIRCLE_WORKFLOW_ID:0:7}" \
+      #       --parameter-overrides WorkflowID=old-${CIRCLE_WORKFLOW_ID:0:7}
+      #     no_output_timeout: 30m
       - run:
-          name: Create blue bucket
-          command: |
-              aws s3api create-bucket \
-              --acl public-read \
-              --bucket udapeople-old-${CIRCLE_WORKFLOW_ID:0:7}
-      - run:
-          name: Create the CloudFront distribution
-          command: |
-            aws cloudformation deploy \
-            --template-file .circleci/files/cloudfront.yml \
-            --stack-name "udapeople-cloudfront-stack-${CIRCLE_WORKFLOW_ID:0:7}" \
-            --parameter-overrides WorkflowID=old-${CIRCLE_WORKFLOW_ID:0:7}
-          no_output_timeout: 30m
-      - run:
-          name: Ensure back-end infrastructure exists
+          name: Deploy back-end
           command: |
             aws cloudformation deploy \
               --template-file .circleci/files/backend.yml \
@@ -147,7 +147,7 @@ jobs:
               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" 
           no_output_timeout: 30m
       - run:
-          name: Ensure front-end infrastructure exist
+          name: Deploy front-end
           command: |
             aws cloudformation deploy \
               --template-file .circleci/files/frontend.yml \
