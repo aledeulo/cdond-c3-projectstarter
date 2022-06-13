@@ -24,9 +24,9 @@
       failed_when: false
       register: check_python
     
-     - name: Install Python
-        raw: sudo apt install -y python3
-        when: check_python.rc != 0
+    - name: Install Python
+      raw: sudo apt install -y python3
+      when: check_python.rc != 0
     
 
   # Get the environment variables from CircleCI and add to the EC2 instance
