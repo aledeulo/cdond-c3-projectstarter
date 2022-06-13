@@ -200,7 +200,8 @@ jobs:
     steps:
       - checkout
       - add_ssh_keys:
-          fingerprints: ["ea:43:42:b3:40:5f:88:9b:e5:a5:53:6a:9b:d6:2b:64"]
+          fingerprints: 
+            - "ea:43:42:b3:40:5f:88:9b:e5:a5:53:6a:9b:d6:2b:64"
       - attach_workspace:
           at: ~/
       - run:
@@ -213,7 +214,7 @@ jobs:
           name: Configure server
           command: |
             cd ~/project/.circleci/ansible && \
-            ansible-playbook -i inventory.txt -c ssh configure-server.yml
+            ansible-playbook -i inventory.txt configure-server.yml
           no_output_timeout: 30m
       # - slack/notify:
       #     custom: |
