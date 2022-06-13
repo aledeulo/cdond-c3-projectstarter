@@ -2,7 +2,7 @@ version: 2.1
 
 orbs:
   slack: circleci/slack@4.1
-  aws-cli: amazon/aws-cli
+  aws-cli: circleci/aws-cli@3.1.1
 
 aws_docker_image: &aws_docker_image
   docker:
