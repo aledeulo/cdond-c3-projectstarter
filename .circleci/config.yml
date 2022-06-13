@@ -23,10 +23,6 @@ commands:
           profile-name: new-profile
           role-arn: 'arn:aws:iam::246528985509:role/CloudFormationAdmin'
           source-profile: default
-      - run: >-
-          aws sts assume-role --role-arn
-          "arn:aws:iam::246528985509:role/CloudFormationAdmin" --role-session-name
-          AWSCLI-Session
       - run:
           name: Destroy environments
           when: on_fail
