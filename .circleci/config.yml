@@ -2,12 +2,10 @@ version: 2.1
 
 orbs:
   slack: circleci/slack@4.1
-  aws-cli: circleci/aws-cli@3.1
 
 aws_docker_image: &aws_docker_image
   docker:
     - image: amazon/aws-cli
-
 
 node_docker_image: &node_docker_image
   docker:
@@ -17,12 +15,6 @@ commands:
   destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.    
     steps:
-      - aws-cli/setup:
-          profile-name: default
-      - aws-cli/role-arn-setup:
-          profile-name: new-profile
-          role-arn: 'arn:aws:iam::246528985509:role/CloudFormationAdmin'
-          source-profile: default
       - run:
           name: Destroy environments
           when: on_fail
@@ -198,8 +190,8 @@ jobs:
           name: Configure server
           command: |
             cd ~/project/.circleci/ansible && \
-            ls -l && \
-            ansible-playbook -i inventory configure-server.yml
+            cat inventory.txt && \
+            ansible-playbook -i inventory.txt configure-server.yml
           no_output_timeout: 30m
       # - slack/notify:
       #     custom: |
