@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+  slack: circleci/slack@4.1
+
 aws_docker_image: &aws_docker_image
   docker:
     - image: amazon/aws-cli
@@ -17,10 +20,10 @@ commands:
           name: Destroy environments
           when: on_fail
           command: |
-            aws cloudformation delete-stack --stack-name frontend-stack-${CIRCLE_WORKFLOW_ID} && \
-            echo "CloudFormation cleaning has being triggered for frontend-stack-${CIRCLE_WORKFLOW_ID}!" && \
-            aws cloudformation delete-stack --stack-name backend-stack-${CIRCLE_WORKFLOW_ID} && \
-            echo "CloudFormation cleaning has being triggered for backend-stack-${CIRCLE_WORKFLOW_ID}!"
+            aws cloudformation delete-stack --stack-name frontend-stack-${CIRCLE_WORKFLOW_ID:0:7} && \
+            echo "CloudFormation cleaning has being triggered for frontend-stack-${CIRCLE_WORKFLOW_ID:0:7}!" && \
+            aws cloudformation delete-stack --stack-name backend-stack-${CIRCLE_WORKFLOW_ID:0:7} && \
+            echo "CloudFormation cleaning has being triggered for backend-stack-${CIRCLE_WORKFLOW_ID:0:7}!"
             
 jobs:
   build-frontend:
@@ -28,7 +31,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: frontend-build-${CIRCLE_WORKFLOW_ID}
+          key: frontend-build-${CIRCLE_WORKFLOW_ID:0:7}
       - run:
           name: Build front-end
           command: |
@@ -37,14 +40,14 @@ jobs:
       - save_cache:
           paths: 
             - ./node_modules
-          key: frontend-build-${CIRCLE_WORKFLOW_ID}
+          key: frontend-build-${CIRCLE_WORKFLOW_ID:0:7}
 
   build-backend:
     <<: *node_docker_image
     steps:
       - checkout
       - restore_cache:
-          key: backend-build-${CIRCLE_WORKFLOW_ID}
+          key: backend-build-${CIRCLE_WORKFLOW_ID:0:7}
       - run:
           name: Back-end build
           command: |
@@ -53,14 +56,14 @@ jobs:
       - save_cache:
           paths: 
             - ./node_modules
-          key: backend-build-${CIRCLE_WORKFLOW_ID}
+          key: backend-build-${CIRCLE_WORKFLOW_ID:0:7}
 
   test-frontend:
     <<: *node_docker_image
     steps:
       - checkout
       - restore_cache:
-          key: frontend-build-${CIRCLE_WORKFLOW_ID}
+          key: frontend-build-${CIRCLE_WORKFLOW_ID:0:7}
       - run:
           name: Running tests for frontend
           command:  |
@@ -72,7 +75,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: backend-build-${CIRCLE_WORKFLOW_ID}
+          key: backend-build-${CIRCLE_WORKFLOW_ID:0:7}
       - run: 
           name: Running backend tests
           command:  |
@@ -87,7 +90,7 @@ jobs:
           name: Run audit for frontend
           command: |
             cd ./frontend && \
-            npm install && npm audit fix
+            npm install && npm audit fix --audit-level=critical
 
   scan-backend:
     <<: *node_docker_image
@@ -97,28 +100,42 @@ jobs:
           name: Run audit for backend
           command: |
             cd ./backend && \
-            npm install && npm audit fix
+            npm install && npm audit fix --audit-level=critical
   
   deploy-infrastructure:
     <<: *aws_docker_image
     steps:
       - checkout
       - run:
+          name: Create blue bucket
+          command: |
+              aws s3api create-bucket \
+              --bucket udapeople-${CIRCLE_WORKFLOW_ID:0:7}  \ 
+              --region ${AWS_DEFAULT_REGION} \
+              --acl public-read
+      - run:
+          name: Create the CloudFront distribution
+          command: |
+            aws cloudformation deploy \
+            --template-file .circleci/files/cloudfront.yml \
+            --stack-name InitialStack \
+            --parameter-overrides WorkflowID=udapeople-${CIRCLE_WORKFLOW_ID:0:7}
+      - run:
           name: Ensure back-end infrastructure exists
           command: |
             aws cloudformation deploy \
               --template-file .circleci/files/backend.yml \
-              --tags project=your-tag \
-              --stack-name "backend-stack-${CIRCLE_WORKFLOW_ID}" \
-              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID}" 
+              --tags project=udapeople \
+              --stack-name "udapeople-backend-stack-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" 
       - run:
           name: Ensure front-end infrastructure exist
           command: |
             aws cloudformation deploy \
               --template-file .circleci/files/frontend.yml \
-              --tags project=your-tag \
-              --stack-name "frontend-stack-${CIRCLE_WORKFLOW_ID}" \
-              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID}"  
+               --tags project=udapeople \
+              --stack-name "udapeople-frontend-stack-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  
       - run:  
           name: Install necessary tools for workspace
           command: |
@@ -128,7 +145,8 @@ jobs:
           command: |
             aws ec2 describe-instances \
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
-            --output text >> .circleci/ansible/inventory.txt
+            --output text >> .circleci/ansible/inventory.txt && \
+            pwd && cat .circleci/ansible/inventory.txt
       - persist_to_workspace:
           root: ~/
           paths:
@@ -151,11 +169,29 @@ jobs:
       - run:
           name: Configure server
           command: |
-            ls -l ~/ && \
             cd ~/project/.circleci/ansible && \
-            ls -l
-            # sudo ansible-playbook -i inventory main-remote.yml
+            ls -l && \
+            ansible-playbook -i inventory configure-server.yml && \
+            ansible-playbook -i inventory deploy-backend.yml
+      - slack/notify:
+          custom: |
+            {
+              "blocks": [
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "plain_text",
+                      "text": "*Configure instances job has falied. Please go to CircleCI to see details.*",
+                      "emoji": true
+                    }
+                  ]
+                }
+              ]
+            }
+          event: always
       - destroy-environment  
+      
 
 workflows:
   deploy-project:
@@ -174,12 +210,14 @@ workflows:
           # requires: [test-frontend, test-backend, scan-frontend, scan-backend]
           filters:
             branches:
-              only: [deploy-infrastructure]          
-      - configure-infrastructure:
-          requires: [deploy-infrastructure]
-          filters:
-            branches:
               only: [deploy-infrastructure]
+          context: slack-secrets        
+      # - configure-infrastructure:
+      #     requires: [deploy-infrastructure]
+      #     filters:
+      #       branches:
+      #         only: [deploy-infrastructure]
+      #     context: slack-secrets
 
       # - run-migrations:
       #     requires: [configure-infrastructure]
