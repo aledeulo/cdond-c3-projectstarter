@@ -245,7 +245,7 @@ workflows:
           filters:
             branches:
               only: [deploy-infrastructure]
-          context: slack-secrets
+          context: Slack notifications
 
       # - run-migrations:
       #     requires: [configure-infrastructure]

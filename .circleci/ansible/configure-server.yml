@@ -25,7 +25,7 @@
       register: check_python
     
      - name: Install Python
-        raw: sudo -y install python
+        raw: sudo apt install -y python3
         when: check_python.rc != 0
     
 
