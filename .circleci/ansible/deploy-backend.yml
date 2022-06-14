@@ -19,7 +19,7 @@
       become: yes
       shell: apt install tar
 
-    - name: "See location"
+    - name: "See folder content"
       shell: pwd
       remote_src: yes
     
