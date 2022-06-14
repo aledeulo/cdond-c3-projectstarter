@@ -1,14 +1,5 @@
 ---
 
-- name: "Install extractors"
-  apt:
-    name:
-      - gzip
-      - unzip
-      - tar
-    state: present
-  become: true
-  
 - name: "Creates directory"
   file:
     path: ~/web

@@ -28,6 +28,15 @@
       become: true
       shell: apt install -y python3
     
+    - name: "Install extractors"
+      apt:
+        name:
+          - gzip
+          - unzip
+          - tar
+        state: present
+      become: true
+    
 
   # Get the environment variables from CircleCI and add to the EC2 instance
   environment:
