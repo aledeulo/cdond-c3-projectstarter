@@ -29,7 +29,7 @@
       become: true
 
     - name: Extract final files
-      shell: tar -xvzf ~/web/artifact.tar -C ~/web/
+      shell: tar -xvzf ~/web/artifact.tar.gz -C ~/web/
 
   roles:
     - deploy
