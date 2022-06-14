@@ -10,23 +10,16 @@
     - ansible_stdout_callback: yaml
 
   pre_tasks:
-    - name: "Creates directory"
-      file:
-        path: ~/backend
-        state: directory
-
     - name: Copy files to EC2 instance
       copy:
         src: ~/project/backend/artifact.tar.gz
-        dest: ~/backend
-
-    - name: "Get into backend folder"
-      shell: cd ~/backend
+        dest: .
 
     - name: "Decompress the file"
       ansible.builtin.unarchive:
-        src: artifact.tar.gz
+        src: ~/artifact.tar.gz
         dest: .
+        remote_src: yes
 
   roles:
     - deploy
