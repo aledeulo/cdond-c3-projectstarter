@@ -10,20 +10,25 @@
     - ansible_stdout_callback: yaml
 
   pre_tasks:
+    - name: "Creates directory"
+      file:
+        path: ~/web
+        state: directory
+
     - name: Copy files to EC2 instance
       copy:
         src: ~/project/backend/artifact.tar.gz
-        dest: ~/
+        dest: ~/web/artifact.tar.gz
 
     - name: "Install tar"
       become: yes
-      shell: apt install tar
+      shell: apt install -y tar unzip
 
     - name: "Decompress the file"
       become: yes
       unarchive:
-        src: /home/ubuntu/artifact.tar.gz
-        dest: .
+        src: ~/web/artifact.tar.gz
+        dest: ~/web/
         mode: 755
         remote_src: yes
 

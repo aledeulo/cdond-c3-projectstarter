@@ -1,7 +1,7 @@
 ---
 
 - name: "Executing node"
-  shell: cd /home/ubuntu && npm install
+  shell: cd ~/web && npm install
 
 - name: "Run backend"
-  shell: cd /home/ubuntu && pm2 start npm -- start
+  shell: cd ~/web && pm2 start npm -- start
