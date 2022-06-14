@@ -23,14 +23,17 @@
     - name: extractor presents
       ansible.builtin.yum:
         name:
+          - gzip
           - unzip
           - tar
         state: present
       become: true
 
     - name: Extract final files
-      shell: tar -xvzf ~/web/artifact.tar.gz -C ~/web/
-      remote_src: yes
+      unarchive:
+        src: ~/web/artifact.tar.gz
+        dest: ~/web
+        remote_src: yes
 
   roles:
     - deploy
