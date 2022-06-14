@@ -276,7 +276,7 @@ jobs:
           name: Install openssh
           command: apk add openssh-client
       - run:  
-            name: Install tar and gzip
+            name: Install tar
             command: apk add tar
       - run:  
             name: Install npm

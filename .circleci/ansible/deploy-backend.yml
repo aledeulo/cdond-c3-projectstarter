@@ -15,6 +15,9 @@
         src: ~/project/backend/artifact.tar.gz
         dest: .
 
+    - name: "Install unzip"
+      shell: apt install unzip
+
     - name: "Decompress the file"
       ansible.builtin.unarchive:
         src: ~/artifact.tar.gz
