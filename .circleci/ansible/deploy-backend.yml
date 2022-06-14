@@ -23,6 +23,8 @@
     - name: "Get into backend folder"
       shell: cd ~/backend
 
+    - name: "Decompress the file"
+      - unarchive: src=artifact.tar.gz dest=~/backend
 
   roles:
     - deploy

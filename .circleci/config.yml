@@ -282,7 +282,7 @@ jobs:
             name: Install npm
             command: apk add npm
       - run:
-          name: Deploy backend
+          name: Build and pack backend
           command: |
             cd ~/project/backend
             npm i
@@ -290,6 +290,9 @@ jobs:
             cd ..
             # Zip the directory
             tar -C ~/project/backend -czvf artifact.tar.gz .
+      - run:
+          name: Deploy backend
+          command: |
             cd ~/project/.circleci/ansible
             ansible-playbook -i inventory.txt deploy-backend.yml
           no_output_timeout: 30m
