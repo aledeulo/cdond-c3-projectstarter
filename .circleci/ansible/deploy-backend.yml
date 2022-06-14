@@ -15,14 +15,15 @@
         src: ~/project/backend/artifact.tar.gz
         dest: .
 
-    - name: "Install unzip"
+    - name: "Install tar"
       become: yes
-      shell: apt install unzip
+      shell: apt install tar
 
     - name: "Decompress the file"
-      ansible.builtin.unarchive:
+      unarchive:
         src: ~/artifact.tar.gz
         dest: .
+        mode: 755
         remote_src: yes
 
   roles:
