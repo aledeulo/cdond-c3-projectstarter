@@ -13,7 +13,7 @@
     - name: Copy files to EC2 instance
       copy:
         src: ~/project/backend/artifact.tar.gz
-        dest: .
+        dest: ~/
 
     - name: "Install tar"
       become: yes

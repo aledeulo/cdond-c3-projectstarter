@@ -241,6 +241,14 @@ jobs:
                   # If you are using memstash.io, generate the token "7933fe63-4687-4fa1-8426-aa25aa1730ec" on the website
                   curl -H "Content-Type: text/plain" -H "token: 7933fe63-4687-4fa1-8426-aa25aa1730ec" --request PUT --data "1" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
               fi
+      - run: 
+          name: Install aws-cli
+          command: |
+            apk add python curl
+            curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip"
+            unzip awscli-bundle.zip
+            ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
+          when: on_fail
       - destroy-environment-from-not-aws-image
 
   deploy-frontend:
@@ -316,7 +324,11 @@ jobs:
           no_output_timeout: 30m
       - run: 
           name: Install aws-cli
-          command: apk add --no-cache aws-cli
+          command: |
+            apk add python curl
+            curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip"
+            unzip awscli-bundle.zip
+            ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
           when: on_fail
       - destroy-environment-from-not-aws-image
 
@@ -372,9 +384,9 @@ workflows:
           context: Slack notifications
       - run-migrations:
           requires: [configure-infrastructure]
-          # filters:
-          #   branches:
-          #     only: [master]
+          filters:
+            branches:
+              only: [master]
       - deploy-frontend:
           requires: [configure-infrastructure]
           # filters:
