@@ -208,21 +208,24 @@ jobs:
           name: Update env vars
           command: |
             cd backend
-            echo  
-                  "NODE_ENV=local"
-                  "VERSION=1"
-                  "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}"
-                  "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}"
-                  "AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}"
-                  "TYPEORM_CONNECTION=${TYPEORM_CONNECTION}"
-                  "TYPEORM_ENTITIES=${TYPEORM_ENTITIES}"
-                  "TYPEORM_HOST=${TYPEORM_HOST}"
-                  "TYPEORM_PORT=${TYPEORM_PORT}"
-                  "TYPEORM_USERNAME=${TYPEORM_USERNAME}"
-                  "TYPEORM_PASSWORD=${TYPEORM_PASSWORD}"
-                  "TYPEORM_DATABASE=${TYPEORM_DATABASE}"
-                  "TYPEORM_MIGRATIONS=${TYPEORM_MIGRATIONS}"
-                  "TYPEORM_MIGRATIONS_DIR=${TYPEORM_MIGRATIONS_DIR}" > .env
+            rm .env
+            cat > .env << EOF
+                  NODE_ENV=local
+                  VERSION=1
+                  AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+                  AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+                  AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+                  TYPEORM_CONNECTION=${TYPEORM_CONNECTION}
+                  TYPEORM_ENTITIES=${TYPEORM_ENTITIES}
+                  TYPEORM_HOST=${TYPEORM_HOST}
+                  TYPEORM_PORT=${TYPEORM_PORT}
+                  TYPEORM_USERNAME=${TYPEORM_USERNAME}
+                  TYPEORM_PASSWORD=${TYPEORM_PASSWORD}
+                  TYPEORM_DATABASE=${TYPEORM_DATABASE}
+                  TYPEORM_MIGRATIONS=${TYPEORM_MIGRATIONS}
+                  TYPEORM_MIGRATIONS_DIR=${TYPEORM_MIGRATIONS_DIR}
+                  EOF
+            cat .env
       - run:
           name: Run backend migrations
           command: |
@@ -313,9 +316,33 @@ jobs:
           no_output_timeout: 30m
       - run: 
           name: Install aws-cli
-          command: apk add awscli
+          command: apk add --no-cache aws-cli
           when: on_fail
       - destroy-environment-from-not-aws-image
+
+  smoke-test:
+    docker:
+      - image: alpine:latest
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --no-cache aws-cli
+
+      - run:
+          name: Get backend url
+          command: |
+            # your code here
+      - run:
+          name: Backend smoke test.
+          command: |
+            # your code here
+      - run:
+          name: Frontend smoke test.
+          command: |
+            # your code here
+      - destroy-environment-from-not-aws-image 
       
 
 workflows:

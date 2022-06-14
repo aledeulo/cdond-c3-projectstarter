@@ -20,6 +20,7 @@
       shell: apt install tar
 
     - name: "Decompress the file"
+      become: yes
       unarchive:
         src: ~/artifact.tar.gz
         dest: .
