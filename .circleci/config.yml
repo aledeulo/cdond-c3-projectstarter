@@ -19,6 +19,8 @@ commands:
           name: Destroy environments
           when: on_fail
           command: |
+            aws s3 rm "s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}" --recursive && \
+            echo "CloudFormation cleaning has being triggered for S3 bucket udapeople-${CIRCLE_WORKFLOW_ID:0:7}!" && \
             aws cloudformation delete-stack --stack-name udapeople-frontend-stack-${CIRCLE_WORKFLOW_ID:0:7} && \
             echo "CloudFormation cleaning has being triggered for udapeople-frontend-stack-${CIRCLE_WORKFLOW_ID:0:7}!" && \
             aws cloudformation delete-stack --stack-name udapeople-backend-stack-${CIRCLE_WORKFLOW_ID:0:7} && \
@@ -33,6 +35,8 @@ commands:
           name: Destroy environments
           when: on_fail
           command: |
+            aws s3 rm "s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}" --recursive && \
+            echo "CloudFormation cleaning has being triggered for S3 bucket udapeople-${CIRCLE_WORKFLOW_ID:0:7}!" && \
             aws cloudformation delete-stack --stack-name udapeople-frontend-stack-${CIRCLE_WORKFLOW_ID:0:7} && \
             echo "CloudFormation cleaning has being triggered for udapeople-frontend-stack-${CIRCLE_WORKFLOW_ID:0:7}!" && \
             aws cloudformation delete-stack --stack-name udapeople-backend-stack-${CIRCLE_WORKFLOW_ID:0:7} && \
@@ -156,15 +160,15 @@ jobs:
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
             --output text >> .circleci/ansible/inventory.txt && \
             cat .circleci/ansible/inventory.txt
-      # - run:
-      #     name: Deploy front-end
-      #     command: |
-      #       aws cloudformation deploy \
-      #         --template-file .circleci/files/frontend.yml \
-      #          --tags project=udapeople \
-      #         --stack-name "udapeople-frontend-stack-${CIRCLE_WORKFLOW_ID:0:7}" \
-      #         --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
-      #     no_output_timeout: 30m   
+      - run:
+          name: Deploy front-end
+          command: |
+            aws cloudformation deploy \
+              --template-file .circleci/files/frontend.yml \
+               --tags project=udapeople \
+              --stack-name "udapeople-frontend-stack-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
+          no_output_timeout: 30m   
       
       - persist_to_workspace:
           root: ~/
@@ -308,15 +312,15 @@ jobs:
             cd ~/project/.circleci/ansible
             ansible-playbook -i inventory.txt -vvvv deploy-backend.yml
           no_output_timeout: 30m
-      # - run: 
-      #     name: Install aws-cli
-      #     command: |
-      #       apk add python curl
-      #       curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip"
-      #       unzip awscli-bundle.zip
-      #       ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
-      #     when: on_fail
-      # - destroy-environment-from-not-aws-image
+      - run: 
+          name: Install aws-cli
+          command: |
+            apk add python curl
+            curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip"
+            unzip awscli-bundle.zip
+            ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
+          when: on_fail
+      - destroy-environment-from-not-aws-image
 
   smoke-test:
     docker:
@@ -330,18 +334,16 @@ jobs:
             curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip"
             unzip awscli-bundle.zip
             ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
-
       - run:
           name: Get backend url
-          command: |
-            # your code here
-      - run:
-          name: Backend smoke test.
           command: |
             export BACKEND_IP=$(aws ec2 describe-instances \
             --filters "Name=tag-value,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
             --output text)
+      - run:
+          name: Backend smoke test.
+          command: |            
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
             if curl "${API_URL}/api/status" | grep "ok"
@@ -376,18 +378,18 @@ jobs:
 workflows:
   deploy-project:
     jobs:
-      # - build-frontend
-      # - build-backend
-      # - test-frontend:
-      #     requires: [build-frontend]
-      # - test-backend:
-      #     requires: [build-backend]
-      # - scan-backend:
-      #     requires: [build-backend]
-      # - scan-frontend:
-      #     requires: [build-frontend]
+      - build-frontend
+      - build-backend
+      - test-frontend:
+          requires: [build-frontend]
+      - test-backend:
+          requires: [build-backend]
+      - scan-backend:
+          requires: [build-backend]
+      - scan-frontend:
+          requires: [build-frontend]
       - deploy-infrastructure:
-          # requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+          requires: [test-frontend, test-backend, scan-frontend, scan-backend]
           # filters:
           #   branches:
           #     only: [master]
@@ -405,9 +407,9 @@ workflows:
               only: [master]
       - deploy-frontend:
           requires: [configure-infrastructure]
-          filters:
-            branches:
-              only: [master]
+          # filters:
+          #   branches:
+          #     only: [master]
       - deploy-backend:
           requires: [configure-infrastructure]
           # filters:
@@ -415,9 +417,9 @@ workflows:
           #     only: [master]
       - smoke-test:
           requires: [deploy-backend, deploy-frontend]
-          filters:
-            branches:
-              only: [master]
+          # filters:
+          #   branches:
+          #     only: [master]
       # - cloudfront-update:
       #     requires: [smoke-test]
       # - cleanup:
