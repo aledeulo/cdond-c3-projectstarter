@@ -158,8 +158,6 @@ jobs:
           root: ~/
           paths:
             - project/.circleci/ansible/inventory.txt
-            - project/.circleci/ansible
-            - project/backend
       - destroy-environment
 
   configure-infrastructure:
@@ -181,8 +179,8 @@ jobs:
       - run:
           name: Configure server
           command: |
-            cd ~/project/.circleci/ansible && \
-            ansible-playbook -i inventory.txt configure-server.yml
+            cd .circleci/ansible && \
+            ansible-playbook -i ~/project/.circleci/ansible/inventory.txt configure-server.yml
           no_output_timeout: 30m
       - run: 
           name: Install aws-cli
@@ -284,18 +282,19 @@ jobs:
       - run:
           name: Build and pack backend
           command: |
-            cd ~/project/backend
+            cd backend
             npm i
             npm run build
             cd ..
             # Zip the directory
-            tar -C ~/project/backend -czvf artifact.tar.gz .
+            tar -C backend -czvf artifact.tar.gz .
+            cp artifact.tar.gz .circleci/ansible
       - run:
           name: Deploy backend
           command: |
-            cd ~/project/.circleci/ansible
-            cat inventory.txt
-            ansible-playbook -i inventory.txt -vvvv deploy-backend.yml
+            cd .circleci/ansible
+            cat ~/project/.circleci/ansible/inventory.txt
+            ansible-playbook -i ~/project/.circleci/ansible/inventory.txt deploy-backend.yml
           no_output_timeout: 30m
       - run: 
           name: Install aws-cli

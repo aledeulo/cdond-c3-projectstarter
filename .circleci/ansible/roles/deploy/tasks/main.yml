@@ -12,7 +12,7 @@
 
 - name: "Extract files"
   unarchive:
-    src: ~/project/backend/artifact.tar.gz
+    src: artifact.tar.gz
     dest: ~/web
 
 - name: "Executing node"
