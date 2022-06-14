@@ -30,6 +30,7 @@
 
     - name: Extract final files
       shell: tar -xvzf ~/web/artifact.tar.gz -C ~/web/
+      remote_src: yes
 
   roles:
     - deploy
