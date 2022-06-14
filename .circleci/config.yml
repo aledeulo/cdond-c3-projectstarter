@@ -332,7 +332,7 @@ workflows:
       - deploy-frontend:
           requires: [deploy-infrastructure]
       - deploy-backend:
-          requires: [deploy-infrastructure]
+          requires: [configure-infrastructure]
       # - smoke-test:
       #     requires: [deploy-backend, deploy-frontend]
       # - cloudfront-update:
