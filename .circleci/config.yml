@@ -207,24 +207,24 @@ jobs:
       - run:
           name: Update env vars
           command: |
-            cd backend && \
-            rm .env && \
-            tee -a .env > . <<EOT
-            NODE_ENV=local
-            VERSION=1
-            AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-            AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-            AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
-            TYPEORM_CONNECTION=${TYPEORM_CONNECTION}
-            TYPEORM_ENTITIES=${TYPEORM_ENTITIES}
-            TYPEORM_HOST=${TYPEORM_HOST}
-            TYPEORM_PORT=${TYPEORM_PORT}
-            TYPEORM_USERNAME=${TYPEORM_USERNAME}
-            TYPEORM_PASSWORD=${TYPEORM_PASSWORD}
-            TYPEORM_DATABASE=${TYPEORM_DATABASE}
-            TYPEORM_MIGRATIONS=${TYPEORM_MIGRATIONS}
-            TYPEORM_MIGRATIONS_DIR=${TYPEORM_MIGRATIONS_DIR}
-            EOT && \  
+            cd backend
+            rm .env
+            touch .env            
+            echo "NODE_ENV=local" >> .env
+            echo "VERSION=1" >> .env
+            echo "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}" >> .env
+            echo "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}" >> .env
+            echo "AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}" >> .env
+            echo "TYPEORM_CONNECTION=${TYPEORM_CONNECTION}" >> .env
+            echo "TYPEORM_ENTITIES=${TYPEORM_ENTITIES}" >> .env
+            echo "TYPEORM_HOST=${TYPEORM_HOST}" >> .env
+            echo "TYPEORM_PORT=${TYPEORM_PORT}" >> .env
+            echo "TYPEORM_USERNAME=${TYPEORM_USERNAME}" >> .env
+            echo "TYPEORM_PASSWORD=${TYPEORM_PASSWORD}" >> .env
+            echo "TYPEORM_DATABASE=${TYPEORM_DATABASE}" >> .env
+            echo "TYPEORM_MIGRATIONS=${TYPEORM_MIGRATIONS}" >> .env
+            echo "TYPEORM_MIGRATIONS_DIR=${TYPEORM_MIGRATIONS_DIR}" >> .env
+            
             cat .env
       - run:
           name: Run backend migrations
