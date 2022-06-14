@@ -28,9 +28,11 @@
         state: present
       become: true
 
-    - name: "Decompress the file"
-      shell: tar -xvzf ~/web/artifact.tar.gz -C ~/web
-      remote_src: yes
+    - name: "Convert into .tar"
+      shell: gunzip ~/web/artifact.tar.gz
+
+    - name: Extract final files
+      shell: tar -xf ~/web/artifact.tar -C ~/web/
 
   roles:
     - deploy
