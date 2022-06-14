@@ -275,6 +275,9 @@ jobs:
       - run:  
             name: Install tar and gzip
             command: apk add tar
+      - run:  
+            name: Install npm
+            command: apk add npm
       - run:
           name: Deploy backend
           command: |
