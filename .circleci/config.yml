@@ -298,15 +298,15 @@ jobs:
             cat inventory.txt
             ansible-playbook -i inventory.txt -vvvv deploy-backend.yml
           no_output_timeout: 30m
-      - run: 
-          name: Install aws-cli
-          command: |
-            apk add python curl
-            curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip"
-            unzip awscli-bundle.zip
-            ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
-          when: on_fail
-      - destroy-environment
+      # - run: 
+      #     name: Install aws-cli
+      #     command: |
+      #       apk add python curl
+      #       curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip"
+      #       unzip awscli-bundle.zip
+      #       ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
+      #     when: on_fail
+      # - destroy-environment
 
   smoke-test:
     docker:

@@ -14,18 +14,22 @@
       file:
         path: ~/web
         state: directory
+        mode: 755
 
     - name: Copy files to EC2 instance
       copy:
         src: ~/project/backend/artifact.tar.gz
         dest: ~/web/artifact.tar.gz
 
-    - name: "Install tar"
-      become: yes
-      shell: apt install -y tar unzip
+    - name: extractor presents
+      ansible.builtin.yum:
+        name:
+          - unzip
+          - tar
+        state: present
+      become: true
 
     - name: "Decompress the file"
-      become: yes
       unarchive:
         src: ~/web/artifact.tar.gz
         dest: ~/web/
