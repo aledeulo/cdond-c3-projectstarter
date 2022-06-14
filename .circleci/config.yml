@@ -176,6 +176,7 @@ jobs:
           paths:
             - project/.circleci/ansible/inventory.txt
             - project/.circleci/ansible
+            - project/backend
       - destroy-environment-from-aws-image
 
   configure-infrastructure:
@@ -266,6 +267,8 @@ jobs:
       - add_ssh_keys:
           fingerprints: 
             - "ea:43:42:b3:40:5f:88:9b:e5:a5:53:6a:9b:d6:2b:64"
+      - attach_workspace:
+          at: ~/
       - run:
           name: Install ansible
           command: apk add --update ansible
@@ -281,18 +284,14 @@ jobs:
       - run:
           name: Deploy backend
           command: |
-            cd backend
+            ls -l
+            cd ~/project/backend
             npm i
             npm run build
             cd ..
             # Zip the directory
-            tar -C backend -czvf artifact.tar.gz .
-            cd .circleci/ansible
-            aws ec2 describe-instances \
-            --query 'Reservations[*].Instances[*].PublicIpAddress' \
-            --output text >> inventory.txt
-            echo "Contents  of the inventory.txt file is -------"
-            cat inventory.txt
+            tar -C ~/project/backend -czvf artifact.tar.gz .
+            cd ~/project/.circleci/ansible
             ansible-playbook -i inventory.txt deploy-backend.yml
           no_output_timeout: 30m
       - destroy-environment-from-not-aws-image

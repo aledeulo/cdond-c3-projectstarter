@@ -1,12 +1,10 @@
 ---
 
 - name: "Decompress the file"
-  shell: |
-    tar -xvf artifact.tar.gz .
+  shell: tar -xvf artifact.tar.gz .
 
 - name: "Executing node"
-  shell: |
-    npm install
+  shell: npm install
 
 - name: "Stop pm2"
   shell: pm2 stop default
