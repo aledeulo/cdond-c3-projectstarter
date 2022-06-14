@@ -18,14 +18,19 @@
     - name: "Install tar"
       become: yes
       shell: apt install tar
+
+    - name: "See location"
+      shell: pwd
+      remote_src: yes
     
     - name: "See folder content"
       shell: ls -l
+      remote_src: yes
 
     - name: "Decompress the file"
       become: yes
       unarchive:
-        src: ~/artifact.tar.gz
+        src: /home/ubuntu/artifact.tar.gz
         dest: .
         mode: 755
         remote_src: yes

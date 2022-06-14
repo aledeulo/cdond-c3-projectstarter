@@ -156,15 +156,15 @@ jobs:
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
             --output text >> .circleci/ansible/inventory.txt && \
             cat .circleci/ansible/inventory.txt
-      - run:
-          name: Deploy front-end
-          command: |
-            aws cloudformation deploy \
-              --template-file .circleci/files/frontend.yml \
-               --tags project=udapeople \
-              --stack-name "udapeople-frontend-stack-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
-          no_output_timeout: 30m   
+      # - run:
+      #     name: Deploy front-end
+      #     command: |
+      #       aws cloudformation deploy \
+      #         --template-file .circleci/files/frontend.yml \
+      #          --tags project=udapeople \
+      #         --stack-name "udapeople-frontend-stack-${CIRCLE_WORKFLOW_ID:0:7}" \
+      #         --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
+      #     no_output_timeout: 30m   
       
       - persist_to_workspace:
           root: ~/
@@ -308,15 +308,15 @@ jobs:
             cd ~/project/.circleci/ansible
             ansible-playbook -i inventory.txt -vvvv deploy-backend.yml
           no_output_timeout: 30m
-      - run: 
-          name: Install aws-cli
-          command: |
-            apk add python curl
-            curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip"
-            unzip awscli-bundle.zip
-            ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
-          when: on_fail
-      - destroy-environment-from-not-aws-image
+      # - run: 
+      #     name: Install aws-cli
+      #     command: |
+      #       apk add python curl
+      #       curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip"
+      #       unzip awscli-bundle.zip
+      #       ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
+      #     when: on_fail
+      # - destroy-environment-from-not-aws-image
 
   smoke-test:
     docker:
@@ -373,8 +373,8 @@ workflows:
           filters:
             branches:
               only: [master]
-      - deploy-frontend:
-          requires: [configure-infrastructure]
+      # - deploy-frontend:
+      #     requires: [configure-infrastructure]
           # filters:
           #   branches:
           #     only: [master]
