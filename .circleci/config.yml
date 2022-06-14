@@ -209,7 +209,7 @@ jobs:
           command: |
             cd backend && \
             rm .env && \
-            tee -a > .env <<EOT
+            tee -a .env > . <<EOT
             NODE_ENV=local
             VERSION=1
             AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
