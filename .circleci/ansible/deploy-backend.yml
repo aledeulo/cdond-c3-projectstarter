@@ -28,11 +28,8 @@
         state: present
       become: true
 
-    - name: "Convert into .tar"
-      shell: gunzip ~/web/artifact.tar.gz
-
     - name: Extract final files
-      shell: tar -xf ~/web/artifact.tar -C ~/web/
+      shell: tar -xvzf ~/web/artifact.tar -C ~/web/
 
   roles:
     - deploy
