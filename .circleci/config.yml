@@ -177,23 +177,6 @@ jobs:
           paths:
             - project/.circleci/ansible/inventory.txt
             - project/.circleci/ansible
-      # - slack/notify:
-      #     custom: |
-      #       {
-      #         "blocks": [
-      #           {
-      #             "type": "section",
-      #             "fields": [
-      #               {
-      #                 "type": "plain_text",
-      #                 "text": "*Deploy infrastructure job alert. Please go to CircleCI to see details.*",
-      #                 "emoji": true
-      #               }
-      #             ]
-      #           }
-      #         ]
-      #       }
-      #     event: always
       - destroy-environment-from-aws-image
 
   configure-infrastructure:
@@ -218,23 +201,6 @@ jobs:
             cd ~/project/.circleci/ansible && \
             ansible-playbook -i inventory.txt configure-server.yml
           no_output_timeout: 30m
-      # - slack/notify:
-      #     custom: |
-      #       {
-      #         "blocks": [
-      #           {
-      #             "type": "section",
-      #             "fields": [
-      #               {
-      #                 "type": "plain_text",
-      #                 "text": "*Configure instances job has falied. Please go to CircleCI to see details.*",
-      #                 "emoji": true
-      #               }
-      #             ]
-      #           }
-      #         ]
-      #       }
-      #     event: always
       - destroy-environment-from-not-aws-image
   
   run-migrations:
@@ -244,7 +210,7 @@ jobs:
       - restore_cache:
           key: backend-build-${CIRCLE_WORKFLOW_ID:0:7}
       - run:
-          name: cd into backend
+          name: Run backend migrations
           command: |
             cd backend && \
             npm install && \
@@ -258,23 +224,47 @@ jobs:
                   # If you are using memstash.io, generate the token "7933fe63-4687-4fa1-8426-aa25aa1730ec" on the website
                   curl -H "Content-Type: text/plain" -H "token: 7933fe63-4687-4fa1-8426-aa25aa1730ec" --request PUT --data "1" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
               fi
+      - destroy-environment-from-not-aws-image
+
+  deploy-frontend:
+    docker:
+      <<: *aws_docker_image
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            # your code here
+      - run:
+          name: Get backend url
+          command: |
+            # your code here
+            export API_URL="http://${BACKEND_IP}:3030"
+            echo "${API_URL}"
+      - run:
+          name: Deploy frontend objects
+          command: |
+            # your code here
+      # Here's where you will add some code to rollback on failure 
+
+
       
 
 workflows:
   deploy-project:
     jobs:
-      - build-frontend
-      - build-backend
-      - test-frontend:
-          requires: [build-frontend]
-      - test-backend:
-          requires: [build-backend]
-      - scan-backend:
-          requires: [build-backend]
-      - scan-frontend:
-          requires: [build-frontend]
+      # - build-frontend
+      # - build-backend
+      # - test-frontend:
+      #     requires: [build-frontend]
+      # - test-backend:
+      #     requires: [build-backend]
+      # - scan-backend:
+      #     requires: [build-backend]
+      # - scan-frontend:
+      #     requires: [build-frontend]
       - deploy-infrastructure:
-          requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+          # requires: [test-frontend, test-backend, scan-frontend, scan-backend]
           filters:
             branches:
               only: [deploy-infrastructure]
@@ -287,8 +277,8 @@ workflows:
           context: Slack notifications
       - run-migrations:
           requires: [configure-infrastructure]
-      # - deploy-frontend:
-      #     requires: [run-migrations]
+      - deploy-frontend:
+          requires: [run-migrations]
       # - deploy-backend:
       #     requires: [run-migrations]
       # - smoke-test:
