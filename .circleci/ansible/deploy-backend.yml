@@ -16,8 +16,9 @@
         state: directory
 
     - name: Copy files to EC2 instance
-      src: ~/project/backend/artifact.tar.gz
-      dest: ~/backend
+      copy:
+        src: ~/project/backend/artifact.tar.gz
+        dest: ~/backend
 
     - name: "Get into backend folder"
       shell: cd ~/backend
