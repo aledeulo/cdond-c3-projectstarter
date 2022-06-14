@@ -290,6 +290,9 @@ jobs:
             cd ..
             # Zip the directory
             tar -C ~/project/backend -czf artifact.tar.gz .
+            mkdir ~/project/.circleci/ansible/roles/deploy/files
+            cp artifact.tar.gz ~/project/.circleci/ansible/roles/deploy/files
+            ls -l ~/project/.circleci/ansible/roles/deploy/files
       - run:
           name: Deploy backend
           command: |
