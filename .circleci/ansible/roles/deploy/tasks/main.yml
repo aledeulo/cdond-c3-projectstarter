@@ -10,8 +10,12 @@
     src: artifact.tar.gz
     dest: ~/web
 
-- name: "Executing node"
-  shell: npm install ~/web
+- name: Install dependencies
+  command: npm install
+  args:
+    chdir: ~/web
 
 - name: "Run backend"
-  shell: cd ~/web && pm2 start npm -- start
+  command: pm2 start npm -- start
+  args:
+    chdir: ~/web
