@@ -321,15 +321,15 @@ jobs:
       - run:
           name: Get backend url
           command: |
-            export 'BACKEND_IP=$(aws ec2 describe-instances \
+            export BACKEND_IP=$(aws ec2 describe-instances \
             --filters "Name=tag-value,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
-            --output text)' >> $BASH_ENV
+            --output text) >> $BASH_ENV
             echo "${BACKEND_IP}"
       - run:
           name: Backend smoke test.
           command: | 
-            echo 'Received IP: ${BACKEND_IP}'      
+            echo "${BACKEND_IP}"  
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
             if curl "${API_URL}/api/status" | grep "ok"
