@@ -319,15 +319,18 @@ jobs:
             unzip awscli-bundle.zip
             ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
       - run:
-          name: Get backend url and Backend smoke test.
-          command: | 
-            # export BACKEND_IP=$(aws ec2 describe-instances \
-            # --filters "Name=tag-value,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-            # --query 'Reservations[*].Instances[*].PublicIpAddress' \
-            # --output text)
-
+          name: Get backend url
+          command: |
+            export 'BACKEND_IP=$(aws ec2 describe-instances \
+            --filters "Name=tag-value,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+            --query 'Reservations[*].Instances[*].PublicIpAddress' \
+            --output text)' >> $BASH_ENV
             echo "${BACKEND_IP}"
-            export API_URL="http://3.83.106.25:3030"
+      - run:
+          name: Backend smoke test.
+          command: | 
+            echo 'Received IP: ${BACKEND_IP}'      
+            export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
             if curl "${API_URL}/api/status" | grep "ok"
             then
@@ -347,51 +350,51 @@ jobs:
             else
               return 1
             fi
-      # - destroy-environment 
+      - destroy-environment 
       
 
 workflows:
   deploy-project:
     jobs:
-      # - build-frontend
-      # - build-backend
-      # - test-frontend:
-      #     requires: [build-frontend]
-      # - test-backend:
-      #     requires: [build-backend]
-      # - scan-backend:
-      #     requires: [build-backend]
-      # - scan-frontend:
-      #     requires: [build-frontend]
-      # - deploy-infrastructure:
-      #     requires: [test-frontend, test-backend, scan-frontend, scan-backend]
-      #     # filters:
-      #     #   branches:
-      #     #     only: [master]
-      #     context: Slack notifications      
-      # - configure-infrastructure:
-      #     requires: [deploy-infrastructure]
-      #     # filters:
-      #     #   branches:
-      #     #     only: [master]
-      #     context: Slack notifications
-      # - run-migrations:
-      #     requires: [configure-infrastructure]
-      #     filters:
-      #       branches:
-      #         only: [master]
-      # - deploy-frontend:
-      #     requires: [configure-infrastructure]
-      #     # filters:
-      #     #   branches:
-      #     #     only: [master]
-      # - deploy-backend:
-      #     requires: [configure-infrastructure]
+      - build-frontend
+      - build-backend
+      - test-frontend:
+          requires: [build-frontend]
+      - test-backend:
+          requires: [build-backend]
+      - scan-backend:
+          requires: [build-backend]
+      - scan-frontend:
+          requires: [build-frontend]
+      - deploy-infrastructure:
+          requires: [test-frontend, test-backend, scan-frontend, scan-backend]
           # filters:
           #   branches:
           #     only: [master]
-      - smoke-test
-          # requires: [deploy-backend, deploy-frontend]
+          context: Slack notifications      
+      - configure-infrastructure:
+          requires: [deploy-infrastructure]
+          # filters:
+          #   branches:
+          #     only: [master]
+          context: Slack notifications
+      - run-migrations:
+          requires: [configure-infrastructure]
+          filters:
+            branches:
+              only: [master]
+      - deploy-frontend:
+          requires: [configure-infrastructure]
+          # filters:
+          #   branches:
+          #     only: [master]
+      - deploy-backend:
+          requires: [configure-infrastructure]
+          # filters:
+          #   branches:
+          #     only: [master]
+      - smoke-test:
+          requires: [deploy-backend, deploy-frontend]
           # filters:
           #   branches:
           #     only: [master]
