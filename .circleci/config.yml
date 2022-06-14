@@ -228,7 +228,7 @@ jobs:
 
   deploy-frontend:
     docker:
-      <<: *aws_docker_image
+    <<: *aws_docker_image
     steps:
       - checkout
       - run:
