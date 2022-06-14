@@ -321,10 +321,10 @@ jobs:
       - run:
           name: Get backend url
           command: |
-            export BACKEND_IP=$(aws ec2 describe-instances \
+            export 'BACKEND_IP="$(aws ec2 describe-instances \
             --filters "Name=tag-value,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
-            --output text)
+            --output text)"' >> $BASH_ENV
             echo "${BACKEND_IP}"
       - run:
           name: Backend smoke test.
@@ -355,45 +355,45 @@ jobs:
 workflows:
   deploy-project:
     jobs:
-      - build-frontend
-      - build-backend
-      - test-frontend:
-          requires: [build-frontend]
-      - test-backend:
-          requires: [build-backend]
-      - scan-backend:
-          requires: [build-backend]
-      - scan-frontend:
-          requires: [build-frontend]
-      - deploy-infrastructure:
-          requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+      # - build-frontend
+      # - build-backend
+      # - test-frontend:
+      #     requires: [build-frontend]
+      # - test-backend:
+      #     requires: [build-backend]
+      # - scan-backend:
+      #     requires: [build-backend]
+      # - scan-frontend:
+      #     requires: [build-frontend]
+      # - deploy-infrastructure:
+      #     requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+      #     # filters:
+      #     #   branches:
+      #     #     only: [master]
+      #     context: Slack notifications      
+      # - configure-infrastructure:
+      #     requires: [deploy-infrastructure]
+      #     # filters:
+      #     #   branches:
+      #     #     only: [master]
+      #     context: Slack notifications
+      # - run-migrations:
+      #     requires: [configure-infrastructure]
+      #     filters:
+      #       branches:
+      #         only: [master]
+      # - deploy-frontend:
+      #     requires: [configure-infrastructure]
+      #     # filters:
+      #     #   branches:
+      #     #     only: [master]
+      # - deploy-backend:
+      #     requires: [configure-infrastructure]
           # filters:
           #   branches:
           #     only: [master]
-          context: Slack notifications      
-      - configure-infrastructure:
-          requires: [deploy-infrastructure]
-          # filters:
-          #   branches:
-          #     only: [master]
-          context: Slack notifications
-      - run-migrations:
-          requires: [configure-infrastructure]
-          filters:
-            branches:
-              only: [master]
-      - deploy-frontend:
-          requires: [configure-infrastructure]
-          # filters:
-          #   branches:
-          #     only: [master]
-      - deploy-backend:
-          requires: [configure-infrastructure]
-          # filters:
-          #   branches:
-          #     only: [master]
-      - smoke-test:
-          requires: [deploy-backend, deploy-frontend]
+      - smoke-test
+          # requires: [deploy-backend, deploy-frontend]
           # filters:
           #   branches:
           #     only: [master]
