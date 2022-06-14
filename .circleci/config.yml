@@ -192,7 +192,7 @@ jobs:
             unzip awscli-bundle.zip
             ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
           when: on_fail
-      - destroy-environmente
+      - destroy-environment
   
   run-migrations:
     <<: *node_docker_image
@@ -223,7 +223,7 @@ jobs:
             unzip awscli-bundle.zip
             ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
           when: on_fail
-      - destroy-environmente
+      - destroy-environment
 
   deploy-frontend:
     <<: *aws_docker_image
