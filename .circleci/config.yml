@@ -169,6 +169,7 @@ jobs:
           name: Add back-end ip to ansible inventory
           command: |
             aws ec2 describe-instances \
+            --filters "Name=tag-value,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}"
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
             --output text >> .circleci/ansible/inventory.txt
       - persist_to_workspace:
@@ -209,6 +210,22 @@ jobs:
       - checkout
       - restore_cache:
           key: backend-build-${CIRCLE_WORKFLOW_ID:0:7}
+      - run:
+          name: Update env vars
+          command: |
+            cd backend
+            echo "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}"
+                  "AWS_SECRET_ACCESS_KEY={AWS_SECRET_ACCESS_KEY}"
+                  "AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}"
+                  "TYPEORM_CONNECTION=${TYPEORM_CONNECTION}"
+                  "TYPEORM_ENTITIES=${TYPEORM_ENTITIES}"
+                  "TYPEORM_HOST=${TYPEORM_HOST}"
+                  "TYPEORM_PORT=${TYPEORM_PORT}"
+                  "TYPEORM_USERNAME=${TYPEORM_USERNAME}"
+                  "TYPEORM_PASSWORD=${TYPEORM_PASSWORD}"
+                  "TYPEORM_DATABASE=${TYPEORM_DATABASE}"
+                  "TYPEORM_MIGRATIONS=${TYPEORM_MIGRATIONS}"
+                  "TYPEORM_MIGRATIONS_DIR=${TYPEORM_MIGRATIONS_DIR}" >> .env
       - run:
           name: Run backend migrations
           command: |
