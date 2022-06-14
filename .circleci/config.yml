@@ -294,6 +294,8 @@ jobs:
           name: Deploy backend
           command: |
             cd ~/project/.circleci/ansible
+            pwd && ls -l
+            cat inventory.txt
             ansible-playbook -i inventory.txt deploy-backend.yml
           no_output_timeout: 30m
       - run: 
@@ -319,16 +321,12 @@ jobs:
             unzip awscli-bundle.zip
             ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
       - run:
-          name: Get backend url
-          command: |
-            export 'BACKEND_IP=$(aws ec2 describe-instances \
+          name: Get backend url and Backend smoke test.
+          command: | 
+            export BACKEND_IP=$(aws ec2 describe-instances \
             --filters "Name=tag-value,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
-            --output text)' >> $BASH_ENV
-            echo "${BACKEND_IP}"
-      - run:
-          name: Backend smoke test.
-          command: | 
+            --output text)
             echo 'Received IP: ${BACKEND_IP}'      
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
