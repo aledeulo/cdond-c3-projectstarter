@@ -155,11 +155,11 @@ jobs:
           no_output_timeout: 30m   
       
       - persist_to_workspace:
-          root: ~/
+          root: ~/${CIRCLE_WORKFLOW_ID:0:7}/
           paths:
-            - project_${CIRCLE_WORKFLOW_ID:0:7}/.circleci/ansible/inventory.txt
-            - project_${CIRCLE_WORKFLOW_ID:0:7}/.circleci/ansible
-            - project_${CIRCLE_WORKFLOW_ID:0:7}/backend
+            - project/.circleci/ansible/inventory.txt
+            - project/.circleci/ansible
+            - project/backend
       - destroy-environment
 
   configure-infrastructure:
@@ -171,7 +171,7 @@ jobs:
           fingerprints: 
             - "ea:43:42:b3:40:5f:88:9b:e5:a5:53:6a:9b:d6:2b:64"
       - attach_workspace:
-          at: ~/
+          at: ~/${CIRCLE_WORKFLOW_ID:0:7}/
       - run:
           name: Install ansible
           command: apk add --update ansible
@@ -181,7 +181,7 @@ jobs:
       - run:
           name: Configure server
           command: |
-            cd ~/project_${CIRCLE_WORKFLOW_ID:0:7}/.circleci/ansible && \
+            cd ~/${CIRCLE_WORKFLOW_ID:0:7}/project/.circleci/ansible && \
             ansible-playbook -i inventory.txt configure-server.yml
           no_output_timeout: 30m
       - run: 
@@ -284,16 +284,16 @@ jobs:
       - run:
           name: Build and pack backend
           command: |
-            cd ~/project_${CIRCLE_WORKFLOW_ID:0:7}/backend
+            cd ~/${CIRCLE_WORKFLOW_ID:0:7}/project/backend
             npm i
             npm run build
             cd ..
             # Zip the directory
-            tar -C ~/project_${CIRCLE_WORKFLOW_ID:0:7}/backend -czvf artifact.tar.gz .
+            tar -C ~/${CIRCLE_WORKFLOW_ID:0:7}/project/backend -czvf artifact.tar.gz .
       - run:
           name: Deploy backend
           command: |
-            cd ~/project_${CIRCLE_WORKFLOW_ID:0:7}/.circleci/ansible
+            cd ~/${CIRCLE_WORKFLOW_ID:0:7}/project/.circleci/ansible
             pwd && ls -l
             cat inventory.txt
             ansible-playbook -i inventory.txt deploy-backend.yml
