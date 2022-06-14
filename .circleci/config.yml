@@ -30,14 +30,6 @@ commands:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.    
     steps:
       - run:
-          name: Install aws-cli
-          command: |
-            apt install curl && \
-            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
-            unzip awscliv2.zip && \
-            ./aws/install
-          when: on_fail
-      - run:
           name: Destroy environments
           when: on_fail
           command: |
@@ -216,8 +208,11 @@ jobs:
           name: Update env vars
           command: |
             cd backend
-            echo "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}"
-                  "AWS_SECRET_ACCESS_KEY={AWS_SECRET_ACCESS_KEY}"
+            echo  
+                  "NODE_ENV=local"
+                  "VERSION=1"
+                  "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}"
+                  "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}"
                   "AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}"
                   "TYPEORM_CONNECTION=${TYPEORM_CONNECTION}"
                   "TYPEORM_ENTITIES=${TYPEORM_ENTITIES}"
@@ -227,7 +222,7 @@ jobs:
                   "TYPEORM_PASSWORD=${TYPEORM_PASSWORD}"
                   "TYPEORM_DATABASE=${TYPEORM_DATABASE}"
                   "TYPEORM_MIGRATIONS=${TYPEORM_MIGRATIONS}"
-                  "TYPEORM_MIGRATIONS_DIR=${TYPEORM_MIGRATIONS_DIR}" >> .env
+                  "TYPEORM_MIGRATIONS_DIR=${TYPEORM_MIGRATIONS_DIR}" > .env
       - run:
           name: Run backend migrations
           command: |
@@ -258,6 +253,7 @@ jobs:
           name: Get backend url
           command: |
             export BACKEND_IP=$(aws ec2 describe-instances \
+            --filters "Name=tag-value,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
             --output text)
             export API_URL="http://${BACKEND_IP}:3030"
@@ -313,8 +309,12 @@ jobs:
           name: Deploy backend
           command: |
             cd ~/project/.circleci/ansible
-            ansible-playbook -i inventory.txt deploy-backend.yml
+            ansible-playbook -i inventory.txt -vvvv deploy-backend.yml
           no_output_timeout: 30m
+      - run: 
+          name: Install aws-cli
+          command: apk add awscli
+          when: on_fail
       - destroy-environment-from-not-aws-image
       
 
@@ -335,29 +335,29 @@ workflows:
           # requires: [test-frontend, test-backend, scan-frontend, scan-backend]
           # filters:
           #   branches:
-          #     only: [main]
+          #     only: [master]
           context: Slack notifications      
       - configure-infrastructure:
           requires: [deploy-infrastructure]
           # filters:
           #   branches:
-          #     only: [main]
+          #     only: [master]
           context: Slack notifications
       - run-migrations:
           requires: [configure-infrastructure]
           # filters:
           #   branches:
-          #     only: [main]
+          #     only: [master]
       - deploy-frontend:
           requires: [configure-infrastructure]
           # filters:
           #   branches:
-          #     only: [main]
+          #     only: [master]
       - deploy-backend:
           requires: [configure-infrastructure]
           # filters:
           #   branches:
-          #     only: [main]
+          #     only: [master]
       # - smoke-test:
       #     requires: [deploy-backend, deploy-frontend]
       # - cloudfront-update:
