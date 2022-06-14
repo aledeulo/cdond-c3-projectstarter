@@ -14,7 +14,6 @@
       file:
         path: ~/web
         state: directory
-        mode: 755
 
     - name: Copy files to EC2 instance
       copy:
@@ -30,11 +29,8 @@
       become: true
 
     - name: "Decompress the file"
-      unarchive:
-        src: ~/web/artifact.tar.gz
-        dest: ~/web/
-        mode: 755
-        remote_src: yes
+      shell: tar -xvzf ~/web/artifact.tar.gz -C ~/web
+      remote_src: yes
 
   roles:
     - deploy
