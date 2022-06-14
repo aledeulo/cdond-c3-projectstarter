@@ -362,15 +362,15 @@ jobs:
             else
               return 1
             fi
-      # - run: 
-      #     name: Install aws-cli
-      #     command: |
-      #       apk add python curl
-      #       curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip"
-      #       unzip awscli-bundle.zip
-      #       ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
-      #     when: on_fail
-      # - destroy-environment-from-not-aws-image 
+      - run: 
+          name: Install aws-cli
+          command: |
+            apk add python curl
+            curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip"
+            unzip awscli-bundle.zip
+            ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
+          when: on_fail
+      - destroy-environment-from-not-aws-image 
       
 
 workflows:
@@ -413,8 +413,8 @@ workflows:
           # filters:
           #   branches:
           #     only: [master]
-      # - smoke-test:
-      #     requires: [deploy-backend, deploy-frontend]
+      - smoke-test:
+          requires: [deploy-backend, deploy-frontend]
       # - cloudfront-update:
       #     requires: [smoke-test]
       # - cleanup:
