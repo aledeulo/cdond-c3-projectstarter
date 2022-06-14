@@ -10,18 +10,18 @@
     - ansible_stdout_callback: yaml
 
   pre_tasks:
-    - name: "Creates directory"
-      file:
-        path: ~/web
-        state: directory
+    # - name: "Creates directory"
+    #   file:
+    #     path: ~/web
+    #     state: directory
 
     - name: Copy files to EC2 instance
       copy:
         src: ~/project/backend/artifact.tar.gz
-        dest: ~/web/artifact.tar.gz
+        dest: ~/artifact.tar.gz
 
     - name: extractor presents
-      ansible.builtin.yum:
+      apt:
         name:
           - gzip
           - unzip
@@ -31,8 +31,8 @@
 
     - name: Extract final files
       unarchive:
-        src: ~/web/artifact.tar.gz
-        dest: ~/web
+        src: ~/artifact.tar.gz
+        dest: ~/
         remote_src: yes
 
   roles:
