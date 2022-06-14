@@ -16,6 +16,7 @@
         dest: .
 
     - name: "Install unzip"
+      become: yes
       shell: apt install unzip
 
     - name: "Decompress the file"
