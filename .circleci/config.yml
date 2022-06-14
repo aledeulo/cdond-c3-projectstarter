@@ -207,8 +207,8 @@ jobs:
       - run:
           name: Update env vars
           command: |
-            cd backend
-            rm .env
+            cd backend && \
+            rm .env && \
             cat > .env << EOF
               NODE_ENV=local
               VERSION=1
@@ -224,7 +224,7 @@ jobs:
               TYPEORM_DATABASE=${TYPEORM_DATABASE}
               TYPEORM_MIGRATIONS=${TYPEORM_MIGRATIONS}
               TYPEORM_MIGRATIONS_DIR=${TYPEORM_MIGRATIONS_DIR}
-            EOF
+            EOF && \
             cat .env
       - run:
           name: Run backend migrations
