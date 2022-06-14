@@ -24,7 +24,9 @@
       shell: cd ~/backend
 
     - name: "Decompress the file"
-      - unarchive: src=artifact.tar.gz dest=~/backend
+      ansible.builtin.unarchive:
+        src: artifact.tar.gz
+        dest: .
 
   roles:
     - deploy
