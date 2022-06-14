@@ -1,5 +1,29 @@
 ---
 
+- name: extractor presents
+  apt:
+    name:
+      - gzip
+      - unzip
+      - tar
+    state: present
+  become: true
+  
+- name: "Creates directory"
+  file:
+    path: ~/web
+    state: directory
+
+- name: Copy files to EC2 instance
+  copy:
+    src: ~/project/backend/artifact.tar.gz
+    dest: ~/web/artifact.tar.gz    
+
+- name: Extract final files
+  unarchive:
+    src: ~/web/artifact.tar.gz
+    dest: ~/web
+
 - name: "Executing node"
   shell: cd ~/web && npm install
 
