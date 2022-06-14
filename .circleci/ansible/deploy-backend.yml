@@ -18,6 +18,9 @@
     - name: "Install tar"
       become: yes
       shell: apt install tar
+    
+    - name: "See folder content"
+      shell: ls -l
 
     - name: "Decompress the file"
       become: yes
