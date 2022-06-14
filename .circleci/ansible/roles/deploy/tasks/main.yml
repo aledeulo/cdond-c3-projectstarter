@@ -16,13 +16,14 @@
 
 - name: "Copy files to the EC2 instance"
   copy:
-    src: artifact.tar.gz
-    dest: ~/web/artifact.tar.gz 
+    src: ~/project/backend/artifact.tar.gz
+    dest: ~/web/artifact.tar.gz
 
 - name: "Extract files"
   unarchive:
     src: ~/web/artifact.tar.gz
     dest: ~/web
+    remote_src: yes
 
 - name: "Executing node"
   shell: npm install ~/web

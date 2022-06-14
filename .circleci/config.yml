@@ -289,9 +289,7 @@ jobs:
             npm run build
             cd ..
             # Zip the directory
-            mkdir ~/project/.circleci/ansible/roles/deploy/files
-            tar -C ~/project/.circleci/ansible/roles/deploy/files -czf artifact.tar.gz .
-            ls -l ~/project/.circleci/ansible/roles/deploy/files
+            tar -C ~/project/backend -czvf artifact.tar.gz .
       - run:
           name: Deploy backend
           command: |
