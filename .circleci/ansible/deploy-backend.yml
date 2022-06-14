@@ -18,10 +18,6 @@
     - name: "Install tar"
       become: yes
       shell: apt install tar
-
-    - name: "See folder content"
-      shell: pwd
-      remote_src: yes
     
     - name: "See folder content"
       shell: ls -l
