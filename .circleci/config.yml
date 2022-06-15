@@ -11,6 +11,10 @@ node_docker_image: &node_docker_image
   docker:
     - image: circleci/node:13.8.0
 
+python_docker_image: &python_docker_image
+  docker:
+      - image: python:3.7-alpine3.11
+
 commands:
   destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.    
@@ -158,8 +162,7 @@ jobs:
       - destroy-environment
 
   configure-infrastructure:
-    docker:
-      - image: python:3.7-alpine3.11
+    <<: *python_docker_image
     steps:
       - checkout
       - add_ssh_keys:
@@ -255,8 +258,7 @@ jobs:
       - revert-migrations
 
   deploy-backend:
-    docker:
-      - image: python:3.7-alpine3.11
+    <<: *python_docker_image
     steps:
       - checkout
       - add_ssh_keys:
@@ -305,8 +307,7 @@ jobs:
       - revert-migrations
 
   smoke-test:
-    docker:
-      - image: python:3.7-alpine3.11
+    <<: *python_docker_image
     steps:
       - checkout
       - run: 
@@ -380,7 +381,7 @@ jobs:
       - revert-migrations
 
   cleanup:
-    <<: *aws_docker_image
+    <<: *python_docker_image
     steps:
       - checkout
       - attach_workspace:
@@ -388,7 +389,10 @@ jobs:
       - run:  
             name: Install dependencies
             command: |
-              yum install -y tar gzip
+              apk add python curl tar gzip
+              curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip"
+              unzip awscli-bundle.zip
+              ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
       - run:
           name: Fetch OldStack Workflow ID
           command: |
@@ -432,18 +436,18 @@ workflows:
             branches:
               only: [master]
           context: Slack notifications
-      # - run-migrations:
-      #     requires: [configure-infrastructure]
-      #     filters:
-      #       branches:
-      #         only: [master]
-      - deploy-frontend:
+      - run-migrations:
           requires: [configure-infrastructure]
           filters:
             branches:
               only: [master]
+      - deploy-frontend:
+          requires: [run-migrations]
+          filters:
+            branches:
+              only: [master]
       - deploy-backend:
-          requires: [configure-infrastructure]
+          requires: [run-migrations]
           filters:
             branches:
               only: [master]
