@@ -386,6 +386,10 @@ jobs:
       - checkout
       - attach_workspace:
           at: ~/
+      - run:  
+            name: Install dependencies
+            command: |
+              yum install -y tar gzip
       - run:
           name: Fetch OldStack Workflow ID
           command: |
@@ -419,7 +423,7 @@ workflows:
       - scan-frontend:
           requires: [build-frontend]
       - deploy-infrastructure:
-          # requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+          requires: [test-frontend, test-backend, scan-frontend, scan-backend]
           filters:
             branches:
               only: [master]
