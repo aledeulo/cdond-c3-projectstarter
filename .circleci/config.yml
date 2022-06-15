@@ -27,6 +27,22 @@ commands:
             echo "CloudFormation cleaning has being triggered for udapeople-backend-stack-${CIRCLE_WORKFLOW_ID:0:7}!" && \
             aws cloudformation delete-stack --stack-name udapeople-cloudfront-stack-${CIRCLE_WORKFLOW_ID:0:7} && \
             echo "CloudFormation cleaning has being triggered for udapeople-cloudfront-stack-${CIRCLE_WORKFLOW_ID:0:7}!"
+
+  revert-migrations:
+    description: Revert the last migration
+    steps:
+        - run:
+            name: Revert migrations
+            when: on_fail
+            command: |
+                SUCCESS=$(curl --insecure  https://kvdb.io/HjkKC8BTsm9JDdQw2vArNd/migration_${CIRCLE_WORKFLOW_ID:0:7})
+                # Logic for reverting the database state
+                if (( $SUCCESS == 1 ));
+                then
+                    cd backend
+                    npm install
+                    npm run migration:revert
+                fi 
             
 jobs:
   build-frontend:
@@ -240,7 +256,8 @@ jobs:
             npm run build
             tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
-      - destroy-environment 
+      - destroy-environment
+      - revert-migrations
 
   deploy-backend:
     docker:
@@ -290,6 +307,7 @@ jobs:
             ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
           when: on_fail
       - destroy-environment
+      - revert-migrations
 
   smoke-test:
     docker:
@@ -326,13 +344,32 @@ jobs:
             echo ${URL} 
             if curl -s ${URL} | grep "Welcome"
             then
-                # Change this to 0 after the job fails
-              return 1
+              return 0
             else
               return 1
             fi
       - destroy-environment
-      
+      - revert-migrations
+  
+  cloudfront-update:
+    <<: *aws_docker_image
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            curl --silent --location https://rpm.nodesource.com/setup_16.x | bash -
+            yum -y install nodejs
+      - run:
+          name: Update cloudfront distribution
+          command: |
+            aws cloudformation deploy \
+            --template-file .circleci/files/cloudfront.yml \
+            --stack-name InitialStack \
+            --parameter-overrides WorkflowID="udapeople-${CIRCLE_WORKFLOW_ID:0:7}" \
+            --tags project=udapeople
+      - destroy-environment
+      - revert-migrations
 
 workflows:
   deploy-project:
@@ -379,7 +416,10 @@ workflows:
           # filters:
           #   branches:
           #     only: [master]
-      # - cloudfront-update:
-      #     requires: [smoke-test]
+      - cloudfront-update:
+          requires: [smoke-test]
+          # filters:
+          #   branches:
+          #     only: [master]
       # - cleanup:
       #     requires: [cloudfront-update]
