@@ -19,14 +19,10 @@ commands:
           name: Destroy environments
           when: on_fail
           command: |
-            aws s3 rm "s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}" --recursive && \
-            echo "CloudFormation cleaning has being triggered for S3 bucket udapeople-${CIRCLE_WORKFLOW_ID:0:7}!" && \
-            aws cloudformation delete-stack --stack-name udapeople-frontend-stack-${CIRCLE_WORKFLOW_ID:0:7} && \
-            echo "CloudFormation cleaning has being triggered for udapeople-frontend-stack-${CIRCLE_WORKFLOW_ID:0:7}!" && \
-            aws cloudformation delete-stack --stack-name udapeople-backend-stack-${CIRCLE_WORKFLOW_ID:0:7} && \
-            echo "CloudFormation cleaning has being triggered for udapeople-backend-stack-${CIRCLE_WORKFLOW_ID:0:7}!" && \
-            aws cloudformation delete-stack --stack-name udapeople-cloudfront-stack-${CIRCLE_WORKFLOW_ID:0:7} && \
-            echo "CloudFormation cleaning has being triggered for udapeople-cloudfront-stack-${CIRCLE_WORKFLOW_ID:0:7}!"
+              aws s3 rm "s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}" --recursive
+              aws cloudformation delete-stack --stack-name udapeople-frontend-stack-${CIRCLE_WORKFLOW_ID:0:7}
+              aws cloudformation delete-stack --stack-name udapeople-backend-stack-${CIRCLE_WORKFLOW_ID:0:7}
+              aws cloudformation delete-stack --stack-name udapeople-cloudfront-stack-${CIRCLE_WORKFLOW_ID:0:7}
 
   revert-migrations:
     description: Revert the last migration
@@ -355,6 +351,8 @@ jobs:
     <<: *aws_docker_image
     steps:
       - checkout
+      - attach_workspace:
+          at: ~/
       - run:
           name: Install dependencies
           command: |
@@ -363,13 +361,52 @@ jobs:
       - run:
           name: Update cloudfront distribution
           command: |
+            export OldWorkflowID=$(aws cloudformation \
+                list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
+                --no-paginate --output text)
+
+            echo $OldWorkflowID >> OldWorkflowID.txt
+            cat ~/OldWorkflowID.txt          
+
             aws cloudformation deploy \
-            --template-file .circleci/files/cloudfront.yml \
-            --stack-name InitialStack \
-            --parameter-overrides WorkflowID="udapeople-${CIRCLE_WORKFLOW_ID:0:7}" \
-            --tags project=udapeople
+              --template-file .circleci/files/cloudfront.yml \
+              --stack-name udapeople-cloudfront-stack-$OldWorkflowID} \
+              --parameter-overrides WorkflowID="udapeople-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --tags project=udapeople
+
+            echo OldWorkflowID: "${OldWorkflowID}"
+            echo CIRCLE_WORKFLOW_ID "${CIRCLE_WORKFLOW_ID:0:7}"
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - OldWorkflowID.txt
       - destroy-environment
       - revert-migrations
+
+  cleanup:
+    <<: *aws_docker_image
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Fetch OldStack Workflow ID
+          command: |
+            cat ~/OldWorkflowID.txt
+            OldWorkflowID=$(cat ~/OldWorkflowID.txt)
+
+            echo OldWorkflowID: "${OldWorkflowID}"
+            echo $OldWorkflowID
+
+            if [[ "${CIRCLE_WORKFLOW_ID:0:7}" =~ "${OldWorkflowID}" ]]
+            then
+              aws s3 rm "s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}" --recursive
+              aws cloudformation delete-stack --stack-name udapeople-frontend-stack-${CIRCLE_WORKFLOW_ID:0:7}
+              aws cloudformation delete-stack --stack-name udapeople-backend-stack-${CIRCLE_WORKFLOW_ID:0:7}
+              aws cloudformation delete-stack --stack-name udapeople-cloudfront-stack-${CIRCLE_WORKFLOW_ID:0:7}
+            else
+              echo "Cannot delete"
+            fi
 
 workflows:
   deploy-project:
@@ -421,5 +458,8 @@ workflows:
           # filters:
           #   branches:
           #     only: [master]
-      # - cleanup:
-      #     requires: [cloudfront-update]
+      - cleanup:
+          requires: [cloudfront-update]
+          # filters:
+          #   branches:
+          #     only: [master]
