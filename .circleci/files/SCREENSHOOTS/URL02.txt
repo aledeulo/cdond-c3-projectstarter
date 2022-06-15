@@ -1,0 +1,2 @@
+Index url: https://udapeople-3b82a53.s3.amazonaws.com/index.html#/employees
+Public S3 bucket url: https://s3.console.aws.amazon.com/s3/buckets/udapeople-3b82a53

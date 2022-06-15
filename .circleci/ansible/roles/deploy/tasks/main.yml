@@ -1,0 +1,21 @@
+---
+
+- name: "Creates directory"
+  file:
+    path: ~/web
+    state: directory
+
+- name: "Extract files"
+  unarchive:
+    src: artifact.tar.gz
+    dest: ~/web
+
+- name: Install dependencies
+  command: npm install
+  args:
+    chdir: ~/web
+
+- name: "Run backend"
+  command: pm2 start npm -- start
+  args:
+    chdir: ~/web
