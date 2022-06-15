@@ -199,8 +199,8 @@ jobs:
       - restore_cache:
           key: backend-build-${CIRCLE_WORKFLOW_ID:0:7}
       - run:  
-            name: Install npm
-            command: apk add npm
+          name: Install npm
+          command: apk add npm
       - run:
           name: Run backend migrations
           command: |
