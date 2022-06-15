@@ -430,11 +430,11 @@ workflows:
             branches:
               only: [master]
           context: Slack notifications
-      - run-migrations:
-          requires: [configure-infrastructure]
-          filters:
-            branches:
-              only: [master]
+      # - run-migrations:
+      #     requires: [configure-infrastructure]
+      #     filters:
+      #       branches:
+      #         only: [master]
       - deploy-frontend:
           requires: [configure-infrastructure]
           filters:
